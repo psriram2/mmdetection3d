@@ -320,7 +320,15 @@ def get_proj_mat_by_coord_type(img_meta: dict, coord_type: str) -> Tensor:
     coord_type = coord_type.upper()
     mapping = {'LIDAR': 'lidar2img', 'DEPTH': 'depth2img', 'CAMERA': 'cam2img'}
     assert coord_type in mapping.keys()
+
+    # new_cam2img = np.array([[552.554261, 0.000000, 682.049453, 0.000000], [0.000000, 552.554261, 238.769549, 0.000000], [0.000000, 0.000000, 1.000000, 0.000000], [0.000000, 0.000000, 0.000000, 1.000000]])
+    # lidar2img = np.matmul(new_cam2img, img_meta['lidar2cam']).reshape(4, 4)
+    # return torch.from_numpy(lidar2img).cuda()
+
+    # print("img meta: ", img_meta)
+    # 1/0
     return img_meta[mapping[coord_type]]
+    
 
 
 def yaw2local(yaw: Tensor, loc: Tensor) -> Tensor:

@@ -292,6 +292,11 @@ def get_kitti_image_info(path,
     with futures.ThreadPoolExecutor(num_worker) as executor:
         image_infos = executor.map(map_func, image_ids)
 
+    # for image_info in list(image_infos):
+    #     if image_info['image']['image_path'] == 'training/image_2/000252.png':
+    #         print("image info: ", image_info)
+    #         1/0
+
     return list(image_infos)
 
 

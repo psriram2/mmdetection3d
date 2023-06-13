@@ -103,6 +103,13 @@ def proj_lidar_bbox3d_to_img(bboxes_3d: LiDARInstance3DBoxes,
         [corners_3d.reshape(-1, 3),
          np.ones((num_bbox * 8, 1))], axis=-1)
     lidar2img = copy.deepcopy(input_meta['lidar2img']).reshape(4, 4)
+
+    # REMOVE PRANAV
+    new_cam2img = np.array([[552.554261, 0.000000, 682.049453, 0.000000], [0.000000, 552.554261, 238.769549, 0.000000], [0.000000, 0.000000, 1.000000, 0.000000], [0.000000, 0.000000, 0.000000, 1.000000]])
+    lidar2img = np.matmul(new_cam2img, input_meta['lidar2cam']).reshape(4, 4)
+    #
+
+
     if isinstance(lidar2img, torch.Tensor):
         lidar2img = lidar2img.cpu().numpy()
     pts_2d = pts_4d @ lidar2img.T
@@ -158,6 +165,8 @@ def proj_camera_bbox3d_to_img(bboxes_3d: CameraInstance3DBoxes,
     """
     from mmdet3d.structures import points_cam2img
 
+    # print("project camera bbox called")
+
     cam2img = copy.deepcopy(input_meta['cam2img'])
     corners_3d = bboxes_3d.corners
     num_bbox = corners_3d.shape[0]
@@ -168,10 +177,12 @@ def proj_camera_bbox3d_to_img(bboxes_3d: CameraInstance3DBoxes,
     assert (cam2img.shape == torch.Size([3, 3])
             or cam2img.shape == torch.Size([4, 4]))
     cam2img = cam2img.float().cpu()
-
+    
+    # print("cam2img: ", cam2img)
     # project to 2d to get image coords (uv)
     uv_origin = points_cam2img(points_3d, cam2img)
     uv_origin = (uv_origin - 1).round()
     imgfov_pts_2d = uv_origin[..., :2].reshape(num_bbox, 8, 2).numpy()
+    # 1/0
 
     return imgfov_pts_2d

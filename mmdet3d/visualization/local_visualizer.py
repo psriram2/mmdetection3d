@@ -500,6 +500,8 @@ class Det3DLocalVisualizer(DetLocalVisualizer):
         """
 
         check_type('bboxes', bboxes_3d, BaseInstance3DBoxes)
+        # print("hit!!!!")
+        # 1/0
 
         if isinstance(bboxes_3d, DepthInstance3DBoxes):
             proj_bbox3d_to_img = proj_depth_bbox3d_to_img
@@ -513,7 +515,10 @@ class Det3DLocalVisualizer(DetLocalVisualizer):
         edge_colors_norm = color_val_matplotlib(edge_colors)
 
         corners_2d = proj_bbox3d_to_img(bboxes_3d, input_meta)
+        # print("corners 2d: ", corners_2d)
+        # 1/0
         if img_size is not None:
+            # print("bbox outside!!!!!!")
             # Filter out the bbox where half of stuff is outside the image.
             # This is for the visualization of multi-view image.
             valid_point_idx = (corners_2d[..., 0] >= 0) & \
@@ -549,6 +554,8 @@ class Det3DLocalVisualizer(DetLocalVisualizer):
             linestyles=line_styles)
 
         self.ax_save.add_collection(p)
+
+        # print("front_polys: ", front_polys)
 
         # draw a mask on the front of project bboxes
         front_polys = [front_poly for front_poly in front_polys]
@@ -611,7 +618,13 @@ class Det3DLocalVisualizer(DetLocalVisualizer):
         bboxes_3d = instances.bboxes_3d  # BaseInstance3DBoxes
         labels_3d = instances.labels_3d
 
+        # print("bboxes_3d: ", bboxes_3d)
+        # print("labels3d: ", labels_3d)
+
         data_3d = dict()
+        # return None
+
+        # print("pastttttttttt!!!!!!!!")
 
         if vis_task in ['lidar_det', 'multi-modality_det']:
             assert 'points' in data_input
@@ -641,6 +654,8 @@ class Det3DLocalVisualizer(DetLocalVisualizer):
             img = data_input['img']
             if isinstance(img, list) or (isinstance(img, (np.ndarray, Tensor))
                                          and len(img.shape) == 4):
+                # 1/0
+                # print("hit1")
                 # show multi-view images
                 img_size = img[0].shape[:2] if isinstance(
                     img, list) else img.shape[-2:]  # noqa: E501
@@ -688,6 +703,8 @@ class Det3DLocalVisualizer(DetLocalVisualizer):
                                  img_size[1]] = self.get_image()
                 data_3d['img'] = composed_img
             else:
+                # print("hit2") 
+                # print("bboxes3d: ", bboxes_3d)
                 # show single-view image
                 # TODO: Solve the problem: some line segments of 3d bboxes are
                 # out of image by a large margin
@@ -702,12 +719,31 @@ class Det3DLocalVisualizer(DetLocalVisualizer):
                 bbox_palette = get_palette(bbox_color, max_label + 1)
                 colors = [bbox_palette[label] for label in labels_3d]
 
+                # other_img = self.get_image()
+
+                # print("bboxes 3d: ", bboxes_3d)
+                # print("input meta: ", input_meta["cam2img"])
+
+                # print("image shape: ", self.get_image().shape)
+                # self.set_image(mmcv.imresize(self.get_image(), (1242, 332)))
+                # print("image shape: ", self.get_image().shape)
+
                 self.draw_proj_bboxes_3d(
                     bboxes_3d, input_meta, edge_colors=colors)
+
+                # self.draw_proj_bboxes_3d(
+                #     bboxes_3d, {'cam2img': input_meta["cam2img"]})
+
+                # other_img = self.get_image()
+                # mmcv.imwrite(other_img[..., ::-1], "testKITTI360_viz_3d.png")
+
                 if vis_task == 'mono_det' and hasattr(instances, 'centers_2d'):
                     centers_2d = instances.centers_2d
                     self.draw_points(centers_2d)
                 drawn_img = self.get_image()
+                
+                # 1/0
+
                 data_3d['img'] = drawn_img
 
         return data_3d
@@ -868,20 +904,24 @@ class Det3DLocalVisualizer(DetLocalVisualizer):
         gt_img_data = None
         pred_img_data = None
 
+
+        # print("data sample keys: ", data_sample.keys())
+        # draw_gt = False
         if draw_gt and data_sample is not None:
+            # print("DRAW GT IS TRUE")
             if 'gt_instances_3d' in data_sample:
                 gt_data_3d = self._draw_instances_3d(
                     data_input, data_sample.gt_instances_3d,
                     data_sample.metainfo, vis_task, palette)
-            if 'gt_instances' in data_sample:
-                if len(data_sample.gt_instances) > 0:
-                    assert 'img' in data_input
-                    img = data_input['img']
-                    if isinstance(data_input['img'], Tensor):
-                        img = data_input['img'].permute(1, 2, 0).numpy()
-                        img = img[..., [2, 1, 0]]  # bgr to rgb
-                    gt_img_data = self._draw_instances(
-                        img, data_sample.gt_instances, classes, palette)
+            # if 'gt_instances' in data_sample:
+            #     if len(data_sample.gt_instances) > 0:
+            #         assert 'img' in data_input
+            #         img = data_input['img']
+            #         if isinstance(data_input['img'], Tensor):
+            #             img = data_input['img'].permute(1, 2, 0).numpy()
+            #             img = img[..., [2, 1, 0]]  # bgr to rgb
+            #         gt_img_data = self._draw_instances(
+            #             img, data_sample.gt_instances, classes, palette)
             if 'gt_pts_seg' in data_sample and vis_task == 'lidar_seg':
                 assert classes is not None, 'class information is ' \
                                             'not provided when ' \
@@ -892,7 +932,9 @@ class Det3DLocalVisualizer(DetLocalVisualizer):
                                        data_sample.gt_pts_seg, palette,
                                        ignore_index)
 
+        # draw_pred = False
         if draw_pred and data_sample is not None:
+            # print("DRAW PRED IS TRUE")
             if 'pred_instances_3d' in data_sample:
                 pred_instances_3d = data_sample.pred_instances_3d
                 # .cpu can not be used for BaseInstance3DBoxes
@@ -903,17 +945,17 @@ class Det3DLocalVisualizer(DetLocalVisualizer):
                                                        pred_instances_3d,
                                                        data_sample.metainfo,
                                                        vis_task, palette)
-            if 'pred_instances' in data_sample:
-                if 'img' in data_input and len(data_sample.pred_instances) > 0:
-                    pred_instances = data_sample.pred_instances
-                    pred_instances = pred_instances[
-                        pred_instances.scores > pred_score_thr].cpu()
-                    img = data_input['img']
-                    if isinstance(data_input['img'], Tensor):
-                        img = data_input['img'].permute(1, 2, 0).numpy()
-                        img = img[..., [2, 1, 0]]  # bgr to rgb
-                    pred_img_data = self._draw_instances(
-                        img, pred_instances, classes, palette)
+            # if 'pred_instances' in data_sample:
+            #     if 'img' in data_input and len(data_sample.pred_instances) > 0:
+            #         pred_instances = data_sample.pred_instances
+            #         pred_instances = pred_instances[
+            #             pred_instances.scores > pred_score_thr].cpu()
+            #         img = data_input['img']
+            #         if isinstance(data_input['img'], Tensor):
+            #             img = data_input['img'].permute(1, 2, 0).numpy()
+            #             img = img[..., [2, 1, 0]]  # bgr to rgb
+            #         pred_img_data = self._draw_instances(
+            #             img, pred_instances, classes, palette)
             if 'pred_pts_seg' in data_sample and vis_task == 'lidar_seg':
                 assert classes is not None, 'class information is ' \
                                             'not provided when ' \

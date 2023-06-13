@@ -169,6 +169,16 @@ class Det3DDataset(BaseDataset):
         """
         img_filtered_annotations = {}
         filter_mask = ann_info['gt_labels_3d'] > -1
+
+        # print("ann info: ", ann_info)
+        # print("filter mask: ", filter_mask)
+        # print("start")
+        if len(filter_mask) == 0:
+            # print("FILTER MASK EMPTY")
+            # 1/0
+            return ann_info
+            # 1/0
+
         for key in ann_info.keys():
             if key != 'instances':
                 img_filtered_annotations[key] = (ann_info[key][filter_mask])

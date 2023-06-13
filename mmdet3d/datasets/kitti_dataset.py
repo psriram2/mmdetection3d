@@ -72,6 +72,11 @@ class KittiDataset(Det3DDataset):
                  pcd_limit_range: List[float] = [0, -40, -3, 70.4, 40, 0.0],
                  **kwargs) -> None:
 
+        # PRANAV ADDED:
+        filter_empty_gt = True
+        # print("filter empty gt: ", filter_empty_gt)
+        # 1/0
+
         self.pcd_limit_range = pcd_limit_range
         assert load_type in ('frame_based', 'mv_image_based',
                              'fov_image_based')
@@ -88,6 +93,8 @@ class KittiDataset(Det3DDataset):
             **kwargs)
         assert self.modality is not None
         assert box_type_3d.lower() in ('lidar', 'camera')
+
+
 
     def parse_data_info(self, info: dict) -> dict:
         """Process the raw data info.
@@ -149,7 +156,10 @@ class KittiDataset(Det3DDataset):
                 - difficulty (int): Difficulty defined by KITTI.
                   0, 1, 2 represent xxxxx respectively.
         """
+        # print("#"*1000)
+        # print("info: ", info)
         ann_info = super().parse_ann_info(info)
+        # print("ann_info: ", ann_info)
         if ann_info is None:
             ann_info = dict()
             # empty instance
@@ -164,10 +174,15 @@ class KittiDataset(Det3DDataset):
 
         ann_info = self._remove_dontcare(ann_info)
         # in kitti, lidar2cam = R0_rect @ Tr_velo_to_cam
+        # print("info.keys(): ", info['images']['CAM2'].keys())
         lidar2cam = np.array(info['images']['CAM2']['lidar2cam'])
+        # lidar2cam = np.linalg.inv(np.array(info['images']['R0_rect'])) @ lidar2cam
         # convert gt_bboxes_3d to velodyne coordinates with `lidar2cam`
         gt_bboxes_3d = CameraInstance3DBoxes(
             ann_info['gt_bboxes_3d']).convert_to(self.box_mode_3d,
                                                  np.linalg.inv(lidar2cam))
+        # gt_bboxes_3d = CameraInstance3DBoxes(ann_info['gt_bboxes_3d'])
+
+        # print("gt bboxes 3d::::::: ", gt_bboxes_3d)
         ann_info['gt_bboxes_3d'] = gt_bboxes_3d
         return ann_info
